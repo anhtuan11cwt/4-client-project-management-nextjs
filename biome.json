@@ -38,7 +38,8 @@
 			"!**/wrangler.jsonc",
 			"!**/.source",
 			"!**/convex/_generated",
-			"!**/src/components/ui"
+			"!**/src/components/ui",
+			"!**/src/generated/prisma"
 		]
 	},
 	"formatter": {
