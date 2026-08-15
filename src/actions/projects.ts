@@ -7,7 +7,11 @@ import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import { getRequiredUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { convertDateToISO, slugify } from "@/lib/slugify";
-import { optionalDateSchema, optionalUrlSchema } from "@/lib/validation";
+import {
+	budgetSchema,
+	optionalDateSchema,
+	optionalUrlSchema,
+} from "@/lib/validation";
 import type { ProjectProps } from "@/types";
 
 export type ActionState = { error?: string };
@@ -15,6 +19,7 @@ export type ActionState = { error?: string };
 const projectSchema = z
 	.object({
 		bannerImage: optionalUrlSchema,
+		budget: budgetSchema,
 		clientId: z.string().trim(),
 		description: z
 			.string()
@@ -26,10 +31,7 @@ const projectSchema = z
 			.trim()
 			.min(1, "Tên dự án là bắt buộc.")
 			.max(200, "Tên dự án không được vượt quá 200 ký tự."),
-		notes: z
-			.string()
-			.trim()
-			.max(5000, "Ghi chú không được vượt quá 5000 ký tự."),
+		notes: z.string().trim().max(100000, "Ghi chú quá dài."),
 		startDate: optionalDateSchema,
 		status: z.enum(["ONGOING", "COMPLETED"]),
 		thumbnail: optionalUrlSchema,
@@ -42,6 +44,7 @@ const projectSchema = z
 
 const projectSelect = {
 	bannerImage: true,
+	budget: true,
 	createdAt: true,
 	description: true,
 	endDate: true,
@@ -58,6 +61,7 @@ function parseProjectForm(formData: FormData) {
 	const value = (name: string) => String(formData.get(name) ?? "");
 	return projectSchema.safeParse({
 		bannerImage: value("bannerImage"),
+		budget: value("budget"),
 		clientId: value("clientId"),
 		description: value("description"),
 		endDate: value("endDate"),
@@ -127,6 +131,7 @@ export async function createProject(
 	await prisma.project.create({
 		data: {
 			bannerImage: parsed.data.bannerImage || null,
+			budget: parsed.data.budget,
 			clientId,
 			description: parsed.data.description || null,
 			endDate: convertDateToISO(parsed.data.endDate),
@@ -152,6 +157,7 @@ export async function getUserProjects(): Promise<ProjectProps[]> {
 			...projectSelect,
 			client: {
 				select: {
+					companyName: true,
 					email: true,
 					id: true,
 					image: true,
@@ -169,6 +175,7 @@ export async function getProjectById(id: string) {
 		include: {
 			client: {
 				select: {
+					companyName: true,
 					email: true,
 					id: true,
 					image: true,
@@ -190,6 +197,7 @@ export async function getProjectBySlug(slug: string) {
 		include: {
 			client: {
 				select: {
+					companyName: true,
 					email: true,
 					id: true,
 					image: true,
@@ -257,6 +265,7 @@ export async function updateProjectById(
 	await prisma.project.update({
 		data: {
 			bannerImage: newBannerImage,
+			budget: parsed.data.budget,
 			clientId,
 			description: parsed.data.description || null,
 			endDate: convertDateToISO(parsed.data.endDate),
@@ -299,4 +308,62 @@ export async function deleteProject(id: string): Promise<void> {
 	await deleteCloudinaryImage(existing.bannerImage);
 
 	revalidatePath("/dashboard/projects");
+}
+
+export async function updateProjectDescription(
+	id: string,
+	_prevState: ActionState | undefined,
+	formData: FormData,
+): Promise<ActionState | undefined> {
+	const user = await getRequiredUser();
+
+	const existing = await prisma.project.findFirst({
+		select: { id: true, slug: true },
+		where: { id, userId: user.id },
+	});
+	if (!existing) {
+		return { error: "Không tìm thấy dự án." };
+	}
+
+	const description = String(formData.get("description") ?? "").trim();
+	if (description.length > 5000) {
+		return { error: "Mô tả không được vượt quá 5000 ký tự." };
+	}
+
+	await prisma.project.update({
+		data: { description: description || null },
+		where: { id },
+	});
+
+	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
+	return undefined;
+}
+
+export async function updateProjectNotes(
+	id: string,
+	_prevState: ActionState | undefined,
+	formData: FormData,
+): Promise<ActionState | undefined> {
+	const user = await getRequiredUser();
+
+	const existing = await prisma.project.findFirst({
+		select: { id: true, slug: true },
+		where: { id, userId: user.id },
+	});
+	if (!existing) {
+		return { error: "Không tìm thấy dự án." };
+	}
+
+	const notes = String(formData.get("notes") ?? "");
+	if (notes.length > 100000) {
+		return { error: "Ghi chú quá dài." };
+	}
+
+	await prisma.project.update({
+		data: { notes: notes || null },
+		where: { id },
+	});
+
+	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
+	return undefined;
 }

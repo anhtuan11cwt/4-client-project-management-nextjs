@@ -36,6 +36,24 @@ export function formatDateInput(
 	return `${year}-${month}-${day}`;
 }
 
+export function formatCurrency(value: number | null | undefined): string {
+	return `${new Intl.NumberFormat("vi-VN").format(value ?? 0)} ₫`;
+}
+
+const DAY_MS = 86_400_000;
+
+export function formatDeadline(
+	value: Date | string | null | undefined,
+): string {
+	if (!value) return "—";
+	const end = new Date(value);
+	if (Number.isNaN(end.getTime())) return "—";
+	const days = Math.ceil((end.getTime() - Date.now()) / DAY_MS);
+	if (days < 0) return "Quá hạn";
+	if (days === 0) return "Hôm nay";
+	return `${days} ngày`;
+}
+
 export const PROJECT_STATUS_LABELS: Record<string, string> = {
 	COMPLETED: "Hoàn thành",
 	ONGOING: "Đang thực hiện",

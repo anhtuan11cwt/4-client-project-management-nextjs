@@ -18,8 +18,10 @@ export default async function ProjectsPage() {
 		orderBy: { createdAt: "desc" },
 		select: {
 			bannerImage: true,
+			budget: true,
 			client: {
 				select: {
+					companyName: true,
 					email: true,
 					id: true,
 					image: true,

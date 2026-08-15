@@ -8,6 +8,8 @@ export type ClientProps = Pick<
 	| "image"
 	| "phone"
 	| "location"
+	| "companyName"
+	| "companyDescription"
 	| "role"
 	| "createdAt"
 >;
@@ -23,10 +25,11 @@ export type ProjectProps = Pick<
 	| "bannerImage"
 	| "startDate"
 	| "endDate"
+	| "budget"
 	| "status"
 	| "createdAt"
 > & {
-	client?: Pick<User, "id" | "name" | "email" | "image"> | null;
+	client?: Pick<User, "id" | "name" | "email" | "image" | "companyName"> | null;
 };
 
 export type ProjectCommentProps = Pick<

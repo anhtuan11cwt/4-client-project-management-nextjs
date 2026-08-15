@@ -27,6 +27,8 @@ export default async function EditClientPage({
 
 	const client = await prisma.user.findFirst({
 		select: {
+			companyDescription: true,
+			companyName: true,
 			email: true,
 			id: true,
 			image: true,

@@ -26,8 +26,11 @@ interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	emptyMessage?: string;
+	/** Chỉ hiển thị phần phân tích khi model là "project". */
+	model?: string;
 	searchKeys?: Array<keyof TData & string>;
 	searchPlaceholder?: string;
+	summary?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +39,8 @@ export function DataTable<TData, TValue>({
 	searchKeys,
 	searchPlaceholder = "Tìm kiếm...",
 	emptyMessage = "Không tìm thấy kết quả nào.",
+	model,
+	summary,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [globalFilter, setGlobalFilter] = useState("");
@@ -63,6 +68,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="space-y-4">
+			{model === "project" && summary ? <div>{summary}</div> : null}
 			{searchKeys?.length ? (
 				<div className="relative max-w-sm">
 					<Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />

@@ -33,6 +33,7 @@ interface ProjectFormProps {
 		thumbnail: string | null;
 		startDate: Date | null;
 		endDate: Date | null;
+		budget: number;
 		status: "ONGOING" | "COMPLETED";
 		clientId: string | null;
 	};
@@ -117,8 +118,8 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 					/>
 				</div>
 
-				<div className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-1.5 sm:col-span-2">
+				<div className="grid gap-4 sm:grid-cols-12">
+					<div className="space-y-1.5 sm:col-span-8">
 						<Label htmlFor="name">Tên dự án</Label>
 						<Input
 							defaultValue={project?.name ?? ""}
@@ -128,7 +129,19 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 							required
 						/>
 					</div>
-					<div className="space-y-1.5 sm:col-span-2">
+					<div className="space-y-1.5 sm:col-span-4">
+						<Label htmlFor="budget">Ngân sách (₫)</Label>
+						<Input
+							defaultValue={project?.budget ?? 0}
+							id="budget"
+							inputMode="numeric"
+							min={0}
+							name="budget"
+							placeholder="0"
+							type="number"
+						/>
+					</div>
+					<div className="space-y-1.5 sm:col-span-12">
 						<Label htmlFor="description">Mô tả</Label>
 						<Textarea
 							defaultValue={project?.description ?? ""}
@@ -138,7 +151,7 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 							rows={4}
 						/>
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-1.5 sm:col-span-6">
 						<Label htmlFor="startDate">Ngày bắt đầu</Label>
 						<Input
 							defaultValue={formatDateInput(project?.startDate)}
@@ -147,7 +160,7 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 							type="date"
 						/>
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-1.5 sm:col-span-6">
 						<Label htmlFor="endDate">Ngày kết thúc</Label>
 						<Input
 							defaultValue={formatDateInput(project?.endDate)}
@@ -156,7 +169,7 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 							type="date"
 						/>
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-1.5 sm:col-span-6">
 						<Label htmlFor="status">Trạng thái</Label>
 						<Select
 							disabled={isPending}
@@ -176,7 +189,7 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 							</SelectContent>
 						</Select>
 					</div>
-					<div className="space-y-1.5">
+					<div className="space-y-1.5 sm:col-span-6">
 						<Label htmlFor="clientId">Khách hàng</Label>
 						<Select
 							disabled={isPending}

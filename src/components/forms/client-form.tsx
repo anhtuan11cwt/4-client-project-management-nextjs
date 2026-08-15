@@ -24,6 +24,8 @@ interface ClientFormProps {
 		phone: string | null;
 		location: string | null;
 		image: string | null;
+		companyName: string | null;
+		companyDescription: string | null;
 	};
 }
 
@@ -142,6 +144,24 @@ export function ClientForm({ client }: ClientFormProps) {
 							id="location"
 							name="location"
 							placeholder="Thành phố Hồ Chí Minh"
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<Label htmlFor="companyName">Tên công ty</Label>
+						<Input
+							defaultValue={client?.companyName ?? ""}
+							id="companyName"
+							name="companyName"
+							placeholder="Công ty ABC"
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<Label htmlFor="companyDescription">Mô tả công ty</Label>
+						<Input
+							defaultValue={client?.companyDescription ?? ""}
+							id="companyDescription"
+							name="companyDescription"
+							placeholder="Ngành nghề / lĩnh vực của khách hàng"
 						/>
 					</div>
 					<div className="space-y-1.5 sm:col-span-2">

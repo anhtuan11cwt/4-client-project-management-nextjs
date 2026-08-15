@@ -26,6 +26,8 @@ model User {
   image     String?
   phone     String?
   location  String?
+  companyName        String?
+  companyDescription String?
   role      UserRole @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,6 +53,7 @@ model Project {
   bannerImage String?
   startDate   DateTime?
   endDate     DateTime?
+  budget      Int           @default(0)
   status      ProjectStatus @default(ONGOING)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt

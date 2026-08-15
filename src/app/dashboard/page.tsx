@@ -21,6 +21,8 @@ export default async function DashboardOverviewPage() {
 			prisma.user.findMany({
 				orderBy: { createdAt: "desc" },
 				select: {
+					companyDescription: true,
+					companyName: true,
 					createdAt: true,
 					email: true,
 					id: true,
@@ -37,6 +39,7 @@ export default async function DashboardOverviewPage() {
 				include: {
 					client: {
 						select: {
+							companyName: true,
 							email: true,
 							id: true,
 							image: true,

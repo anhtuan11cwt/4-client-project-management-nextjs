@@ -20,6 +20,7 @@ export default async function ProjectViewPage({
 		include: {
 			client: {
 				select: {
+					companyName: true,
 					email: true,
 					id: true,
 					image: true,

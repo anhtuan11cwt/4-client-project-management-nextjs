@@ -68,7 +68,22 @@ export const passwordSchema = z
 	.regex(/[^A-Za-z0-9]/, "Mật khẩu phải chứa ít nhất một ký tự đặc biệt.")
 	.regex(/^\S+$/, "Mật khẩu không được chứa khoảng trắng.");
 
+/** Ngân sách dự án: số nguyên không âm (chuyển từ chuỗi form). */
+export const budgetSchema = z.coerce
+	.number()
+	.int()
+	.min(0, "Ngân sách không được âm.")
+	.max(9_999_999_999, "Ngân sách quá lớn.");
+
 const clientFields = {
+	companyDescription: z
+		.string()
+		.trim()
+		.max(2000, "Mô tả công ty không được vượt quá 2000 ký tự."),
+	companyName: z
+		.string()
+		.trim()
+		.max(200, "Tên công ty không được vượt quá 200 ký tự."),
 	email: emailSchema,
 	image: optionalUrlSchema,
 	location: z
@@ -91,6 +106,8 @@ export const updateClientSchema = z.object({
 
 export function collectClientValues(formData: FormData) {
 	return {
+		companyDescription: formData.get("companyDescription"),
+		companyName: formData.get("companyName"),
 		email: formData.get("email"),
 		image: formData.get("image"),
 		location: formData.get("location"),

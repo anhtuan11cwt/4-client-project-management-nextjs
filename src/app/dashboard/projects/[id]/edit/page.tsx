@@ -28,6 +28,7 @@ export default async function EditProjectPage({
 	const [project, clients] = await Promise.all([
 		prisma.project.findFirst({
 			select: {
+				budget: true,
 				clientId: true,
 				description: true,
 				endDate: true,

@@ -12,6 +12,8 @@ import type { ClientProps } from "@/types";
 export type ActionState = { error?: string };
 
 const clientSelect = {
+	companyDescription: true,
+	companyName: true,
 	createdAt: true,
 	email: true,
 	id: true,
@@ -51,6 +53,8 @@ export async function createClient(
 
 	await prisma.user.create({
 		data: {
+			companyDescription: toNull(parsed.data.companyDescription),
+			companyName: toNull(parsed.data.companyName),
 			email: parsed.data.email,
 			image: toNull(parsed.data.image),
 			location: toNull(parsed.data.location),
@@ -118,6 +122,8 @@ export async function updateUserById(
 	}
 
 	const data: Parameters<typeof prisma.user.update>[0]["data"] = {
+		companyDescription: toNull(parsed.data.companyDescription),
+		companyName: toNull(parsed.data.companyName),
 		email: parsed.data.email,
 		image: toNull(parsed.data.image),
 		location: toNull(parsed.data.location),

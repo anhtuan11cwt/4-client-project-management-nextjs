@@ -6,8 +6,14 @@ import Image from "next/image";
 
 import { DataTable } from "@/components/data-table";
 import { ProjectActions } from "@/components/projects/project-actions";
+import { ProjectSummary } from "@/components/projects/project-summary";
 import { Badge } from "@/components/ui/badge";
-import { formatDate, getProjectStatusLabel } from "@/lib/format";
+import {
+	formatCurrency,
+	formatDate,
+	formatDeadline,
+	getProjectStatusLabel,
+} from "@/lib/format";
 import type { ProjectProps } from "@/types";
 
 const columns: ColumnDef<ProjectProps>[] = [
@@ -53,6 +59,22 @@ const columns: ColumnDef<ProjectProps>[] = [
 		header: "Ngày bắt đầu",
 	},
 	{
+		accessorKey: "budget",
+		cell: ({ row }) => (
+			<span className="font-medium">{formatCurrency(row.original.budget)}</span>
+		),
+		header: "Ngân sách",
+	},
+	{
+		accessorKey: "endDate",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground">
+				{formatDeadline(row.original.endDate)}
+			</span>
+		),
+		header: "Thời hạn",
+	},
+	{
 		accessorKey: "status",
 		cell: ({ row }) => (
 			<Badge
@@ -78,8 +100,10 @@ export function ProjectsTable({ projects }: { projects: ProjectProps[] }) {
 			columns={columns}
 			data={projects}
 			emptyMessage="Không tìm thấy dự án nào. Hãy tạo dự án đầu tiên để bắt đầu."
+			model="project"
 			searchKeys={["name"]}
 			searchPlaceholder="Tìm dự án theo tên..."
+			summary={<ProjectSummary projects={projects} />}
 		/>
 	);
 }
