@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface UserMenuProps {
+	showDashboard?: boolean;
 	user: {
 		name?: string | null;
 		email?: string | null;
@@ -32,7 +33,7 @@ function getInitials(name: string): string {
 	return `${first}${last}`.toUpperCase();
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ showDashboard = true, user }: UserMenuProps) {
 	const name = user.name ?? user.email ?? "Người dùng";
 
 	function handleLogout() {
@@ -67,11 +68,13 @@ export function UserMenu({ user }: UserMenuProps) {
 					</DropdownMenuLabel>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem render={<Link href="/dashboard" />}>
-					<LayoutDashboard />
-					Tổng quan
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
+				{showDashboard ? (
+					<DropdownMenuItem render={<Link href="/dashboard" />}>
+						<LayoutDashboard />
+						Tổng quan
+					</DropdownMenuItem>
+				) : null}
+				{showDashboard ? <DropdownMenuSeparator /> : null}
 				<DropdownMenuItem onClick={handleLogout}>
 					<LogOut />
 					Đăng xuất

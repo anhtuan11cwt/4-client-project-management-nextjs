@@ -58,7 +58,7 @@ export default async function EditProjectPage({
 			<div>
 				<Link
 					className="inline-flex items-center gap-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-					href={`/dashboard/projects/view/${project.slug}`}
+					href={`/project/${project.slug}`}
 				>
 					<ArrowLeft className="size-3.5" />
 					Quay lại dự án

@@ -37,11 +37,16 @@ export async function authenticate(
 	_prevState: string | undefined,
 	formData: FormData,
 ): Promise<string | undefined> {
+	const rawReturnUrl = String(formData.get("returnUrl") ?? "");
+	const returnUrl =
+		rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//")
+			? rawReturnUrl
+			: "/dashboard";
 	try {
 		await signIn("credentials", {
 			email: formData.get("email"),
 			password: formData.get("password"),
-			redirectTo: "/dashboard",
+			redirectTo: returnUrl,
 		});
 	} catch (error) {
 		if (error instanceof AuthError) {

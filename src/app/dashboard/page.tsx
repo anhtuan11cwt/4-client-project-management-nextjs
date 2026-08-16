@@ -31,6 +31,7 @@ export default async function DashboardOverviewPage() {
 					name: true,
 					phone: true,
 					role: true,
+					userLogo: true,
 				},
 				take: 5,
 				where: { ownerId: userId, role: "CLIENT" },

@@ -22,8 +22,11 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { BannerEditor } from "@/components/projects/banner-editor";
 import { DescriptionForm } from "@/components/projects/description-form";
 import { NotesView } from "@/components/projects/notes-view";
+import { PaymentForm } from "@/components/projects/payment-form";
+import { ProjectBanner } from "@/components/projects/project-banner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +37,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	formatCurrency,
@@ -41,7 +45,7 @@ import {
 	formatDeadline,
 	getProjectStatusLabel,
 } from "@/lib/format";
-import type { ProjectCommentProps, ProjectProps } from "@/types";
+import type { PaymentProps, ProjectCommentProps, ProjectProps } from "@/types";
 
 const NotesForm = dynamic(
 	() => import("@/components/projects/notes-form").then((m) => m.NotesForm),
@@ -49,6 +53,7 @@ const NotesForm = dynamic(
 );
 
 interface ProjectDetailProps {
+	isOwner: boolean;
 	project: ProjectProps & {
 		client?: {
 			id: string;
@@ -58,6 +63,7 @@ interface ProjectDetailProps {
 			companyName: string | null;
 		} | null;
 		comments: ProjectCommentProps[];
+		payments: PaymentProps[];
 	};
 }
 
@@ -98,11 +104,21 @@ function EmptyState({
 	);
 }
 
-export function ProjectDetail({ project }: ProjectDetailProps) {
+export function ProjectDetail({ isOwner, project }: ProjectDetailProps) {
 	const clientName =
 		project.client?.name ?? project.client?.email ?? "Chưa gán khách hàng";
 	const [editingDescription, setEditingDescription] = useState(false);
 	const [editingNotes, setEditingNotes] = useState(false);
+
+	const paidAmount = project.payments.reduce(
+		(sum, payment) => sum + payment.amount + payment.tax,
+		0,
+	);
+	const remainingAmount = Math.max(project.budget - paidAmount, 0);
+	const progressPercent =
+		project.budget > 0
+			? Math.min(Math.round((paidAmount / project.budget) * 100), 100)
+			: 0;
 
 	return (
 		<div className="space-y-6">
@@ -117,17 +133,22 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 			</div>
 
 			<div className="overflow-hidden rounded-2xl border bg-card">
-				{project.bannerImage ? (
-					<Image
-						alt=""
-						className="h-40 w-full object-cover sm:h-52"
-						height={240}
-						src={project.bannerImage}
-						width={1200}
+				<div className="relative">
+					<ProjectBanner
+						bannerImage={project.bannerImage}
+						gradient={project.gradient}
+						name={project.name}
 					/>
-				) : (
-					<div className="h-28 bg-gradient-to-r from-primary/20 via-chart-4/20 to-primary/10 sm:h-36" />
-				)}
+					{isOwner ? (
+						<div className="absolute top-3 right-3">
+							<BannerEditor
+								currentBanner={project.bannerImage}
+								currentGradient={project.gradient}
+								projectId={project.id}
+							/>
+						</div>
+					) : null}
+				</div>
 				<div className="p-6">
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div className="flex items-start gap-4">
@@ -217,6 +238,50 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 				</TabsList>
 
 				<TabsContent className="mt-4 space-y-4" value="overview">
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardDescription>Ngân sách tổng</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<p className="font-bold text-xl">
+									{formatCurrency(project.budget)}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="pb-2">
+								<CardDescription>Đã thanh toán</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<p className="font-bold text-xl">
+									{formatCurrency(paidAmount)}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="pb-2">
+								<CardDescription>Còn lại</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<p className="font-bold text-xl">
+									{formatCurrency(remainingAmount)}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="pb-2">
+								<CardDescription>Tiến độ</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-2">
+								<Progress value={progressPercent} />
+								<p className="text-muted-foreground text-sm">
+									{progressPercent}%
+								</p>
+							</CardContent>
+						</Card>
+					</div>
+
 					<Card>
 						<CardHeader className="flex-row items-center justify-between space-y-0">
 							<div>
@@ -281,7 +346,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 						</CardContent>
 					</Card>
 
-					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						<Card>
 							<CardHeader className="pb-2">
 								<CardDescription className="flex items-center gap-1.5">
@@ -318,19 +383,6 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 							<CardContent>
 								<p className="font-semibold text-sm">
 									{formatDeadline(project.endDate)}
-								</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader className="pb-2">
-								<CardDescription className="flex items-center gap-1.5">
-									<CircleDollarSign className="size-3.5" />
-									Ngân sách
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<p className="font-semibold text-sm">
-									{formatCurrency(project.budget)}
 								</p>
 							</CardContent>
 						</Card>
@@ -375,21 +427,106 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 					</Card>
 				</TabsContent>
 
-				<TabsContent className="mt-4" value="invoices">
-					<EmptyState
-						actionLabel="Thêm hóa đơn"
-						description="Chưa có hóa đơn nào cho dự án này."
-						icon={Receipt}
-						title="Chưa có hóa đơn"
-					/>
+				<TabsContent className="mt-4 space-y-4" value="invoices">
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-base">Hóa đơn</CardTitle>
+							<CardDescription>
+								Các hóa đơn phát sinh từ khoản thanh toán
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{project.payments.length === 0 ? (
+								<p className="text-muted-foreground text-sm">
+									Chưa có hóa đơn nào cho dự án này.
+								</p>
+							) : (
+								<ul className="divide-y">
+									{project.payments.map((payment) => (
+										<li
+											className="flex items-center gap-4 py-3"
+											key={payment.id}
+										>
+											<span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+												<Receipt className="size-4" />
+											</span>
+											<div className="min-w-0 flex-1">
+												<p className="font-medium text-sm">{payment.title}</p>
+												<p className="text-muted-foreground text-xs">
+													{payment.invoiceNumber} · {formatDate(payment.date)}
+												</p>
+											</div>
+											<p className="font-semibold text-sm">
+												{formatCurrency(payment.amount + payment.tax)}
+											</p>
+											<Button
+												render={
+													<Link
+														href={`/project/${project.slug}/invoice/${payment.id}`}
+													/>
+												}
+												size="sm"
+												variant="outline"
+											>
+												Xem hóa đơn
+											</Button>
+										</li>
+									))}
+								</ul>
+							)}
+						</CardContent>
+					</Card>
 				</TabsContent>
-				<TabsContent className="mt-4" value="payments">
-					<EmptyState
-						actionLabel="Ghi nhận thanh toán"
-						description="Chưa có khoản thanh toán nào cho dự án này."
-						icon={CreditCard}
-						title="Chưa có thanh toán"
-					/>
+				<TabsContent className="mt-4 space-y-4" value="payments">
+					<Card>
+						<CardHeader className="flex-row items-center justify-between space-y-0">
+							<div>
+								<CardTitle className="text-base">Thanh toán</CardTitle>
+								<CardDescription>
+									Các khoản thanh toán từ khách hàng
+								</CardDescription>
+							</div>
+							{isOwner ? <PaymentForm projectId={project.id} /> : null}
+						</CardHeader>
+						<CardContent>
+							{project.payments.length === 0 ? (
+								<p className="text-muted-foreground text-sm">
+									Chưa có khoản thanh toán nào cho dự án này.
+								</p>
+							) : (
+								<ul className="divide-y">
+									{project.payments.map((payment) => (
+										<li
+											className="flex items-center gap-4 py-3"
+											key={payment.id}
+										>
+											<div className="min-w-0 flex-1">
+												<p className="font-medium text-sm">{payment.title}</p>
+												<p className="text-muted-foreground text-xs">
+													{formatDate(payment.date)} · {payment.method} ·{" "}
+													{payment.invoiceNumber}
+												</p>
+											</div>
+											<p className="font-semibold text-sm">
+												{formatCurrency(payment.amount + payment.tax)}
+											</p>
+											<Button
+												render={
+													<Link
+														href={`/project/${project.slug}/invoice/${payment.id}`}
+													/>
+												}
+												size="sm"
+												variant="outline"
+											>
+												Xem hóa đơn
+											</Button>
+										</li>
+									))}
+								</ul>
+							)}
+						</CardContent>
+					</Card>
 				</TabsContent>
 				<TabsContent className="mt-4" value="modules">
 					<EmptyState

@@ -22,6 +22,7 @@ const clientSelect = {
 	name: true,
 	phone: true,
 	role: true,
+	userLogo: true,
 } as const;
 
 function toNull(value: string | undefined) {

@@ -22,6 +22,7 @@ import { submitDelay } from "@/lib/delay";
 import { formatDateInput } from "@/lib/format";
 import { uploadImage } from "@/lib/upload";
 import { cn } from "@/lib/utils";
+import { parseProject } from "@/lib/validation";
 
 interface ProjectFormProps {
 	clients: Array<{ id: string; name: string | null; email: string }>;
@@ -60,6 +61,13 @@ export function ProjectForm({ clients, project }: ProjectFormProps) {
 		prevState: Awaited<ReturnType<typeof boundAction>>,
 		formData: FormData,
 	) => {
+		const parsed = parseProject(formData);
+		if (!parsed.success) {
+			const message =
+				parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ.";
+			toast.error(message);
+			return { error: message };
+		}
 		await submitDelay();
 		if (thumbnailFile) {
 			try {

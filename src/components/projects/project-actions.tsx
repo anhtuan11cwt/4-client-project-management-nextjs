@@ -48,7 +48,7 @@ export function ProjectActions({
 		<div className="flex items-center justify-end gap-1">
 			<Button
 				aria-label="Xem dự án"
-				render={<Link href={`/dashboard/projects/view/${slug}`} />}
+				render={<Link href={`/project/${slug}`} />}
 				size="icon-sm"
 				variant="ghost"
 			>

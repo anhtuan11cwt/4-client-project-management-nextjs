@@ -26,6 +26,7 @@ model User {
   image     String?
   phone     String?
   location  String?
+  userLogo  String?
   companyName        String?
   companyDescription String?
   role      UserRole @default(MEMBER)
@@ -39,6 +40,8 @@ model User {
   ownedProjects  Project[]       @relation("ProjectOwner")
   clientProjects Project[]       @relation("ProjectClient")
   comments       ProjectComment[]
+  paymentsMade   Payment[]       @relation("PaymentOwner")
+  clientPayments Payment[]       @relation("PaymentClient")
 
   @@map("users")
 }
@@ -51,6 +54,7 @@ model Project {
   notes       String?
   thumbnail   String?
   bannerImage String?
+  gradient    String?
   startDate   DateTime?
   endDate     DateTime?
   budget      Int           @default(0)
@@ -65,8 +69,32 @@ model Project {
   clientId String? @db.ObjectId
 
   comments ProjectComment[]
+  payments Payment[]
 
   @@map("projects")
+}
+
+model Payment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  amount        Int
+  tax           Int      @default(0)
+  date          DateTime @default(now())
+  method        String
+  invoiceNumber String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectId String  @db.ObjectId
+
+  owner   User   @relation("PaymentOwner", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId  String @db.ObjectId
+
+  client   User?  @relation("PaymentClient", fields: [clientId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clientId String? @db.ObjectId
+
+  @@map("payments")
 }
 
 model ProjectComment {

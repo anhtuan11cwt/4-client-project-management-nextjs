@@ -11,6 +11,7 @@ import {
 	LogOut,
 	Mail,
 	Menu,
+	Palette,
 	Settings,
 	Users,
 	UsersRound,
@@ -83,6 +84,11 @@ const navGroups = [
 	},
 	{
 		links: [
+			{
+				href: "/dashboard/brand-settings",
+				icon: Palette,
+				title: "Thương hiệu",
+			},
 			{
 				href: "/dashboard/settings/account",
 				icon: Settings,

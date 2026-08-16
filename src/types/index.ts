@@ -1,4 +1,4 @@
-import type { Project, ProjectComment, User } from "@prisma/client";
+import type { Payment, Project, ProjectComment, User } from "@prisma/client";
 
 export type ClientProps = Pick<
 	User,
@@ -6,6 +6,7 @@ export type ClientProps = Pick<
 	| "name"
 	| "email"
 	| "image"
+	| "userLogo"
 	| "phone"
 	| "location"
 	| "companyName"
@@ -23,6 +24,7 @@ export type ProjectProps = Pick<
 	| "notes"
 	| "thumbnail"
 	| "bannerImage"
+	| "gradient"
 	| "startDate"
 	| "endDate"
 	| "budget"
@@ -31,6 +33,21 @@ export type ProjectProps = Pick<
 > & {
 	client?: Pick<User, "id" | "name" | "email" | "image" | "companyName"> | null;
 };
+
+export type PaymentProps = Pick<
+	Payment,
+	| "id"
+	| "title"
+	| "amount"
+	| "tax"
+	| "date"
+	| "method"
+	| "invoiceNumber"
+	| "projectId"
+	| "userId"
+	| "clientId"
+	| "createdAt"
+>;
 
 export type ProjectCommentProps = Pick<
 	ProjectComment,

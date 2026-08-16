@@ -60,7 +60,7 @@ export function RecentProjects({ projects }: { projects: ProjectProps[] }) {
 								<div className="min-w-0 flex-1">
 									<Link
 										className="truncate font-semibold text-sm hover:underline"
-										href={`/dashboard/projects/view/${project.slug}`}
+										href={`/project/${project.slug}`}
 									>
 										{project.name}
 									</Link>

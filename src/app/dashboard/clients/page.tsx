@@ -27,6 +27,7 @@ export default async function ClientsPage() {
 			name: true,
 			phone: true,
 			role: true,
+			userLogo: true,
 		},
 		where: { ownerId: session.user.id, role: "CLIENT" },
 	});

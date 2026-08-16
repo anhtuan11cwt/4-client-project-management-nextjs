@@ -17,6 +17,7 @@ import { emailSchema } from "@/lib/validation";
 export function SignInForm() {
 	const searchParams = useSearchParams();
 	const registered = searchParams.get("registered") === "true";
+	const returnUrl = searchParams.get("returnUrl") ?? "";
 	const action = async (prevState: string | undefined, formData: FormData) => {
 		const email = String(formData.get("email") ?? "");
 		const password = String(formData.get("password") ?? "");
@@ -65,6 +66,7 @@ export function SignInForm() {
 			)}
 
 			<form action={formAction} className="space-y-4">
+				<input name="returnUrl" type="hidden" value={returnUrl} />
 				<fieldset className="space-y-4" disabled={isPending}>
 					<div className="space-y-1.5">
 						<Label htmlFor="email">Email</Label>

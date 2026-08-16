@@ -40,7 +40,6 @@ export const emailSchema = z
 	.max(254, "Email không được vượt quá 254 ký tự.")
 	.email("Vui lòng nhập email hợp lệ.");
 
-/** URL tùy chọn: cho phép rỗng, nếu có phải là liên kết http(s) hợp lệ. */
 export const optionalUrlSchema = z
 	.string()
 	.trim()
@@ -49,7 +48,6 @@ export const optionalUrlSchema = z
 		"Liên kết không hợp lệ.",
 	);
 
-/** Ngày tùy chọn: cho phép rỗng, nếu có phải là ngày hợp lệ. */
 export const optionalDateSchema = z
 	.string()
 	.trim()
@@ -68,7 +66,6 @@ export const passwordSchema = z
 	.regex(/[^A-Za-z0-9]/, "Mật khẩu phải chứa ít nhất một ký tự đặc biệt.")
 	.regex(/^\S+$/, "Mật khẩu không được chứa khoảng trắng.");
 
-/** Ngân sách dự án: số nguyên không âm (chuyển từ chuỗi form). */
 export const budgetSchema = z.coerce
 	.number()
 	.int()
@@ -141,4 +138,104 @@ export function collectRegisterValues(formData: FormData) {
 
 export function parseRegister(formData: FormData) {
 	return registerSchema.safeParse(collectRegisterValues(formData));
+}
+
+export const projectSchema = z
+	.object({
+		bannerImage: optionalUrlSchema,
+		budget: budgetSchema,
+		clientId: z.string().trim(),
+		description: z
+			.string()
+			.trim()
+			.max(5000, "Mô tả không được vượt quá 5000 ký tự."),
+		endDate: optionalDateSchema,
+		name: z
+			.string()
+			.trim()
+			.min(1, "Tên dự án là bắt buộc.")
+			.max(200, "Tên dự án không được vượt quá 200 ký tự."),
+		notes: z.string().trim().max(100000, "Ghi chú quá dài."),
+		startDate: optionalDateSchema,
+		status: z.enum(["ONGOING", "COMPLETED"]),
+		thumbnail: optionalUrlSchema,
+	})
+	.refine(
+		(data) =>
+			!data.startDate || !data.endDate || data.startDate <= data.endDate,
+		{ message: "Ngày kết thúc phải sau ngày bắt đầu.", path: ["endDate"] },
+	);
+
+export function collectProjectValues(formData: FormData) {
+	const value = (name: string) => String(formData.get(name) ?? "");
+	return {
+		bannerImage: value("bannerImage"),
+		budget: value("budget"),
+		clientId: value("clientId"),
+		description: value("description"),
+		endDate: value("endDate"),
+		name: value("name"),
+		notes: value("notes"),
+		startDate: value("startDate"),
+		status: value("status"),
+		thumbnail: value("thumbnail"),
+	};
+}
+
+export function parseProject(formData: FormData) {
+	return projectSchema.safeParse(collectProjectValues(formData));
+}
+
+export const paymentSchema = z.object({
+	amount: z.coerce.number().int().min(0, "Số tiền không được âm."),
+	date: z.string().trim(),
+	method: z.string().trim().min(1, "Vui lòng chọn phương thức thanh toán."),
+	tax: z.coerce.number().int().min(0, "Thuế không được âm."),
+	title: z
+		.string()
+		.trim()
+		.min(1, "Tiêu đề là bắt buộc.")
+		.max(200, "Tiêu đề không được vượt quá 200 ký tự."),
+});
+
+export function collectPaymentValues(formData: FormData) {
+	return {
+		amount: formData.get("amount"),
+		date: formData.get("date"),
+		method: formData.get("method"),
+		tax: formData.get("tax"),
+		title: formData.get("title"),
+	};
+}
+
+export function parsePayment(formData: FormData) {
+	return paymentSchema.safeParse(collectPaymentValues(formData));
+}
+
+export const brandSchema = z.object({
+	companyName: z
+		.string()
+		.trim()
+		.max(200, "Tên công ty không được vượt quá 200 ký tự."),
+	email: emailSchema,
+	location: z
+		.string()
+		.trim()
+		.max(200, "Địa chỉ không được vượt quá 200 ký tự."),
+	phone: z.union([vietnamPhoneSchema, z.literal("")]),
+	userLogo: optionalUrlSchema,
+});
+
+export function collectBrandValues(formData: FormData) {
+	return {
+		companyName: formData.get("companyName"),
+		email: formData.get("email"),
+		location: formData.get("location"),
+		phone: formData.get("phone"),
+		userLogo: formData.get("userLogo"),
+	};
+}
+
+export function parseBrand(formData: FormData) {
+	return brandSchema.safeParse(collectBrandValues(formData));
 }

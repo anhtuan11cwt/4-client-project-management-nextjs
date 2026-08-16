@@ -2,45 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { deleteCloudinaryImage } from "@/lib/cloudinary";
 import { getRequiredUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { convertDateToISO, slugify } from "@/lib/slugify";
-import {
-	budgetSchema,
-	optionalDateSchema,
-	optionalUrlSchema,
-} from "@/lib/validation";
+import { parseProject } from "@/lib/validation";
 import type { ProjectProps } from "@/types";
 
 export type ActionState = { error?: string };
-
-const projectSchema = z
-	.object({
-		bannerImage: optionalUrlSchema,
-		budget: budgetSchema,
-		clientId: z.string().trim(),
-		description: z
-			.string()
-			.trim()
-			.max(5000, "Mô tả không được vượt quá 5000 ký tự."),
-		endDate: optionalDateSchema,
-		name: z
-			.string()
-			.trim()
-			.min(1, "Tên dự án là bắt buộc.")
-			.max(200, "Tên dự án không được vượt quá 200 ký tự."),
-		notes: z.string().trim().max(100000, "Ghi chú quá dài."),
-		startDate: optionalDateSchema,
-		status: z.enum(["ONGOING", "COMPLETED"]),
-		thumbnail: optionalUrlSchema,
-	})
-	.refine(
-		(data) =>
-			!data.startDate || !data.endDate || data.startDate <= data.endDate,
-		{ message: "Ngày kết thúc phải sau ngày bắt đầu.", path: ["endDate"] },
-	);
 
 const projectSelect = {
 	bannerImage: true,
@@ -48,6 +17,7 @@ const projectSelect = {
 	createdAt: true,
 	description: true,
 	endDate: true,
+	gradient: true,
 	id: true,
 	name: true,
 	notes: true,
@@ -56,22 +26,6 @@ const projectSelect = {
 	status: true,
 	thumbnail: true,
 } as const;
-
-function parseProjectForm(formData: FormData) {
-	const value = (name: string) => String(formData.get(name) ?? "");
-	return projectSchema.safeParse({
-		bannerImage: value("bannerImage"),
-		budget: value("budget"),
-		clientId: value("clientId"),
-		description: value("description"),
-		endDate: value("endDate"),
-		name: value("name"),
-		notes: value("notes"),
-		startDate: value("startDate"),
-		status: value("status"),
-		thumbnail: value("thumbnail"),
-	});
-}
 
 async function validateClient(userId: string, clientId: string | undefined) {
 	if (!clientId || clientId === "none") return null;
@@ -106,7 +60,7 @@ export async function createProject(
 ): Promise<ActionState | undefined> {
 	const user = await getRequiredUser();
 
-	const parsed = parseProjectForm(formData);
+	const parsed = parseProject(formData);
 	if (!parsed.success) {
 		return {
 			error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ.",
@@ -191,36 +145,6 @@ export async function getProjectById(id: string) {
 	return project;
 }
 
-export async function getProjectBySlug(slug: string) {
-	const user = await getRequiredUser();
-	const project = await prisma.project.findFirst({
-		include: {
-			client: {
-				select: {
-					companyName: true,
-					email: true,
-					id: true,
-					image: true,
-					name: true,
-				},
-			},
-			comments: {
-				include: {
-					author: {
-						select: { id: true, image: true, name: true },
-					},
-				},
-				orderBy: { createdAt: "desc" },
-			},
-		},
-		where: { slug, userId: user.id },
-	});
-	if (!project) {
-		return null;
-	}
-	return project;
-}
-
 export async function updateProjectById(
 	id: string,
 	_prevState: ActionState | undefined,
@@ -242,7 +166,7 @@ export async function updateProjectById(
 		return { error: "Không tìm thấy dự án." };
 	}
 
-	const parsed = parseProjectForm(formData);
+	const parsed = parseProject(formData);
 	if (!parsed.success) {
 		return {
 			error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ.",
@@ -287,6 +211,7 @@ export async function updateProjectById(
 	}
 
 	revalidatePath("/dashboard/projects");
+	revalidatePath(`/project/${slug}`);
 	revalidatePath(`/dashboard/projects/view/${slug}`);
 	redirect(`/dashboard/projects/view/${slug}`);
 }
@@ -335,6 +260,7 @@ export async function updateProjectDescription(
 		where: { id },
 	});
 
+	revalidatePath(`/project/${existing.slug}`);
 	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
 	return undefined;
 }
@@ -364,6 +290,59 @@ export async function updateProjectNotes(
 		where: { id },
 	});
 
+	revalidatePath(`/project/${existing.slug}`);
+	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
+	return undefined;
+}
+
+export async function updateProjectGradient(
+	id: string,
+	gradient: string,
+): Promise<ActionState | undefined> {
+	const user = await getRequiredUser();
+
+	const existing = await prisma.project.findFirst({
+		select: { id: true, slug: true },
+		where: { id, userId: user.id },
+	});
+	if (!existing) {
+		return { error: "Không tìm thấy dự án." };
+	}
+
+	await prisma.project.update({
+		data: { gradient: gradient || null },
+		where: { id },
+	});
+
+	revalidatePath(`/project/${existing.slug}`);
+	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
+	return undefined;
+}
+
+export async function updateProjectBannerImage(
+	id: string,
+	url: string,
+): Promise<ActionState | undefined> {
+	const user = await getRequiredUser();
+
+	const existing = await prisma.project.findFirst({
+		select: { bannerImage: true, id: true, slug: true },
+		where: { id, userId: user.id },
+	});
+	if (!existing) {
+		return { error: "Không tìm thấy dự án." };
+	}
+
+	if (existing.bannerImage && existing.bannerImage !== url) {
+		await deleteCloudinaryImage(existing.bannerImage);
+	}
+
+	await prisma.project.update({
+		data: { bannerImage: url || null },
+		where: { id },
+	});
+
+	revalidatePath(`/project/${existing.slug}`);
 	revalidatePath(`/dashboard/projects/view/${existing.slug}`);
 	return undefined;
 }
