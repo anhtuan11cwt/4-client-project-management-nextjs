@@ -70,6 +70,7 @@ model Project {
 
   comments ProjectComment[]
   payments Payment[]
+  modules  Module[]
 
   @@map("projects")
 }
@@ -100,13 +101,30 @@ model Payment {
 model ProjectComment {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   text      String
+  userId    String   @db.ObjectId
+  username  String
+  userRole  UserRole @default(MEMBER)
   createdAt DateTime @default(now())
 
   project   Project @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projectId String  @db.ObjectId
 
-  author   User @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  author   User   @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   authorId String @db.ObjectId
 
   @@map("project_comments")
+}
+
+model Module {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  userId    String   @db.ObjectId
+  username  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectId String  @db.ObjectId
+
+  @@map("modules")
 }

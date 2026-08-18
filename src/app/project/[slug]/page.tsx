@@ -37,6 +37,7 @@ export default async function ProjectViewPage({
 				},
 				orderBy: { createdAt: "desc" },
 			},
+			modules: { orderBy: { createdAt: "asc" } },
 			payments: { orderBy: { date: "desc" } },
 		},
 		where: {
@@ -51,6 +52,11 @@ export default async function ProjectViewPage({
 
 	return (
 		<ProjectDetail
+			currentUser={{
+				id: session.user.id,
+				name: session.user.name ?? session.user.email ?? "",
+				role: session.user.role,
+			}}
 			isOwner={project.userId === session.user.id}
 			project={project}
 		/>

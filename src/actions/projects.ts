@@ -235,6 +235,53 @@ export async function deleteProject(id: string): Promise<void> {
 	revalidatePath("/dashboard/projects");
 }
 
+export async function updateProjectTitle(
+	id: string,
+	_prevState: ActionState | undefined,
+	formData: FormData,
+): Promise<{ error?: string; slug?: string } | undefined> {
+	const user = await getRequiredUser();
+
+	const existing = await prisma.project.findFirst({
+		select: { id: true, name: true, slug: true },
+		where: { id, userId: user.id },
+	});
+	if (!existing) {
+		return { error: "Không tìm thấy dự án." };
+	}
+
+	const name = String(formData.get("name") ?? "").trim();
+	if (!name) {
+		return { error: "Tên dự án là bắt buộc." };
+	}
+	if (name.length > 200) {
+		return { error: "Tên dự án không được vượt quá 200 ký tự." };
+	}
+
+	const duplicate = await prisma.project.findFirst({
+		select: { id: true },
+		where: { NOT: { id }, name, userId: user.id },
+	});
+	if (duplicate) {
+		return { error: "Đã tồn tại dự án với tên này." };
+	}
+
+	let slug = existing.slug;
+	if (name !== existing.name) {
+		slug = await generateUniqueSlug(name, user.id);
+	}
+
+	await prisma.project.update({
+		data: { name, slug },
+		where: { id },
+	});
+
+	revalidatePath("/dashboard/projects");
+	revalidatePath(`/project/${slug}`);
+	revalidatePath(`/project/${existing.slug}`);
+	return { slug };
+}
+
 export async function updateProjectDescription(
 	id: string,
 	_prevState: ActionState | undefined,

@@ -41,30 +41,32 @@ export function DescriptionForm({
 	const [state, formAction, isPending] = useActionState(action, undefined);
 
 	return (
-		<form action={formAction} className="space-y-3">
-			<Textarea
-				defaultValue={initialDescription ?? ""}
-				disabled={isPending}
-				name="description"
-				placeholder="Mô tả dự án..."
-				rows={4}
-			/>
-			{state?.error ? (
-				<p className="text-destructive text-sm">{state.error}</p>
-			) : null}
-			<div className="flex gap-2">
-				<Button disabled={isPending} type="submit">
-					{isPending ? "Đang lưu..." : "Lưu"}
-				</Button>
-				<Button
+		<form action={formAction}>
+			<fieldset className="space-y-3" disabled={isPending}>
+				<Textarea
+					defaultValue={initialDescription ?? ""}
 					disabled={isPending}
-					onClick={onDone}
-					type="button"
-					variant="outline"
-				>
-					Hủy
-				</Button>
-			</div>
+					name="description"
+					placeholder="Mô tả dự án..."
+					rows={4}
+				/>
+				{state?.error ? (
+					<p className="text-destructive text-sm">{state.error}</p>
+				) : null}
+				<div className="flex gap-2">
+					<Button disabled={isPending} type="submit">
+						{isPending ? "Đang lưu..." : "Lưu"}
+					</Button>
+					<Button
+						disabled={isPending}
+						onClick={onDone}
+						type="button"
+						variant="outline"
+					>
+						Hủy
+					</Button>
+				</div>
+			</fieldset>
 		</form>
 	);
 }

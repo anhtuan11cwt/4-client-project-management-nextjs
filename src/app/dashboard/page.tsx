@@ -1,58 +1,26 @@
 import { DollarSign, FolderKanban, Handshake, Users } from "lucide-react";
 import { redirect } from "next/navigation";
+import {
+	getDashboardAnalytics,
+	getRecentClients,
+	getRecentProjects,
+} from "@/actions/dashboard";
 import { OverviewCard } from "@/components/dashboard/overview-card";
 import { RecentClients } from "@/components/dashboard/recent-clients";
 import { RecentProjects } from "@/components/dashboard/recent-projects";
 import { getSession } from "@/lib/dal";
-import { prisma } from "@/lib/prisma";
-import type { ClientProps, ProjectProps } from "@/types";
 
 export default async function DashboardOverviewPage() {
 	const session = await getSession();
 	if (!session?.user?.id) {
 		redirect("/sign-in");
 	}
-	const userId = session.user.id;
 
-	const [clientCount, projectCount, recentClients, recentProjects] =
-		await Promise.all([
-			prisma.user.count({ where: { ownerId: userId, role: "CLIENT" } }),
-			prisma.project.count({ where: { userId } }),
-			prisma.user.findMany({
-				orderBy: { createdAt: "desc" },
-				select: {
-					companyDescription: true,
-					companyName: true,
-					createdAt: true,
-					email: true,
-					id: true,
-					image: true,
-					location: true,
-					name: true,
-					phone: true,
-					role: true,
-					userLogo: true,
-				},
-				take: 5,
-				where: { ownerId: userId, role: "CLIENT" },
-			}),
-			prisma.project.findMany({
-				include: {
-					client: {
-						select: {
-							companyName: true,
-							email: true,
-							id: true,
-							image: true,
-							name: true,
-						},
-					},
-				},
-				orderBy: { createdAt: "desc" },
-				take: 5,
-				where: { userId },
-			}),
-		]);
+	const [analytics, recentProjects, recentClients] = await Promise.all([
+		getDashboardAnalytics(),
+		getRecentProjects(),
+		getRecentClients(),
+	]);
 
 	return (
 		<div className="space-y-6">
@@ -68,31 +36,33 @@ export default async function DashboardOverviewPage() {
 					footer="Khách hàng trong không gian làm việc của bạn"
 					icon={Users}
 					label="Tổng số khách hàng"
-					value={clientCount}
+					value={analytics.clientCount}
 				/>
 				<OverviewCard
 					footer="Dự án của tất cả khách hàng"
 					icon={FolderKanban}
 					label="Tổng số dự án"
-					value={projectCount}
+					value={analytics.projectCount}
 				/>
 				<OverviewCard
-					footer="Sắp ra mắt"
+					footer="Tổng ngân sách của tất cả dự án"
 					icon={DollarSign}
-					label="Hóa đơn"
-					value={0}
+					isCurrency
+					label="Tổng doanh thu"
+					value={analytics.totalRevenue}
 				/>
 				<OverviewCard
-					footer="Sắp ra mắt"
+					footer="Số tiền đã nhận từ khách hàng"
 					icon={Handshake}
-					label="Thanh toán"
-					value={0}
+					isCurrency
+					label="Đã thanh toán"
+					value={analytics.totalPaid}
 				/>
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-3">
-				<RecentProjects projects={recentProjects as ProjectProps[]} />
-				<RecentClients clients={recentClients as ClientProps[]} />
+				<RecentProjects projects={recentProjects} />
+				<RecentClients clients={recentClients} />
 			</div>
 		</div>
 	);

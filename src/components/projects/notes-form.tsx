@@ -20,6 +20,7 @@ import { updateProjectNotes } from "@/actions/projects";
 import { Button } from "@/components/ui/button";
 import { submitDelay } from "@/lib/delay";
 import { uploadImage } from "@/lib/upload";
+import { cn } from "@/lib/utils";
 
 const UploadImages = Extension.create({
 	addProseMirrorPlugins() {
@@ -96,47 +97,55 @@ export function NotesForm({
 	);
 
 	return (
-		<form action={formAction} className="space-y-3">
-			<input
-				name="notes"
-				type="hidden"
-				value={json ? JSON.stringify(json) : ""}
-			/>
-			<div className="rounded-lg border p-3">
-				<EditorRoot>
-					<EditorContent
-						className="prose prose-sm max-w-none"
-						editorProps={{
-							attributes: {
-								class: "prose prose-sm max-w-none min-h-40 focus:outline-none",
-							},
-							handleDrop: (view, event, _slice, moved) =>
-								handleImageDrop(view, event, moved, uploadFn),
-							handlePaste: (view, event) =>
-								handleImagePaste(view, event, uploadFn),
-						}}
-						extensions={notesExtensions}
-						initialContent={parseInitialContent(initialNotes)}
-						onUpdate={({ editor }) => setJson(editor.getJSON())}
-					/>
-				</EditorRoot>
-			</div>
-			{state?.error ? (
-				<p className="text-destructive text-sm">{state.error}</p>
-			) : null}
-			<div className="flex gap-2">
-				<Button disabled={isPending} type="submit">
-					{isPending ? "Đang lưu..." : "Lưu"}
-				</Button>
-				<Button
-					disabled={isPending}
-					onClick={onDone}
-					type="button"
-					variant="outline"
+		<form action={formAction}>
+			<fieldset className="space-y-3" disabled={isPending}>
+				<input
+					name="notes"
+					type="hidden"
+					value={json ? JSON.stringify(json) : ""}
+				/>
+				<div
+					className={cn(
+						"rounded-lg border p-3 transition-opacity",
+						isPending && "pointer-events-none opacity-50",
+					)}
 				>
-					Hủy
-				</Button>
-			</div>
+					<EditorRoot>
+						<EditorContent
+							className="prose prose-sm max-w-none"
+							editorProps={{
+								attributes: {
+									class:
+										"prose prose-sm max-w-none min-h-40 focus:outline-none",
+								},
+								handleDrop: (view, event, _slice, moved) =>
+									handleImageDrop(view, event, moved, uploadFn),
+								handlePaste: (view, event) =>
+									handleImagePaste(view, event, uploadFn),
+							}}
+							extensions={notesExtensions}
+							initialContent={parseInitialContent(initialNotes)}
+							onUpdate={({ editor }) => setJson(editor.getJSON())}
+						/>
+					</EditorRoot>
+				</div>
+				{state?.error ? (
+					<p className="text-destructive text-sm">{state.error}</p>
+				) : null}
+				<div className="flex gap-2">
+					<Button disabled={isPending} type="submit">
+						{isPending ? "Đang lưu..." : "Lưu"}
+					</Button>
+					<Button
+						disabled={isPending}
+						onClick={onDone}
+						type="button"
+						variant="outline"
+					>
+						Hủy
+					</Button>
+				</div>
+			</fieldset>
 		</form>
 	);
 }

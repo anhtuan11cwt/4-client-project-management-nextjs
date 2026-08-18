@@ -239,3 +239,35 @@ export function collectBrandValues(formData: FormData) {
 export function parseBrand(formData: FormData) {
 	return brandSchema.safeParse(collectBrandValues(formData));
 }
+
+export const commentSchema = z.object({
+	content: z
+		.string()
+		.trim()
+		.min(1, "Nội dung bình luận là bắt buộc.")
+		.max(50000, "Nội dung bình luận quá dài."),
+});
+
+export function collectCommentValues(formData: FormData) {
+	return { content: formData.get("content") };
+}
+
+export function parseComment(formData: FormData) {
+	return commentSchema.safeParse(collectCommentValues(formData));
+}
+
+export const moduleSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.min(1, "Tên hạng mục là bắt buộc.")
+		.max(200, "Tên hạng mục không được vượt quá 200 ký tự."),
+});
+
+export function collectModuleValues(formData: FormData) {
+	return { name: formData.get("name") };
+}
+
+export function parseModule(formData: FormData) {
+	return moduleSchema.safeParse(collectModuleValues(formData));
+}

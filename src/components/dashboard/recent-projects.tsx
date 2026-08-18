@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -10,7 +11,15 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { formatDate, getProjectStatusLabel } from "@/lib/format";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { formatCurrency, getProjectStatusLabel } from "@/lib/format";
 import type { ProjectProps } from "@/types";
 
 export function RecentProjects({ projects }: { projects: ProjectProps[] }) {
@@ -41,47 +50,73 @@ export function RecentProjects({ projects }: { projects: ProjectProps[] }) {
 						</p>
 					</div>
 				) : (
-					<ul className="divide-y">
-						{projects.map((project) => (
-							<li className="flex items-center gap-4 py-3" key={project.id}>
-								{project.thumbnail ? (
-									<Image
-										alt={project.name}
-										className="size-10 shrink-0 rounded-md border object-cover"
-										height={40}
-										src={project.thumbnail}
-										width={40}
-									/>
-								) : (
-									<span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-										<FolderKanban className="size-4" />
-									</span>
-								)}
-								<div className="min-w-0 flex-1">
-									<Link
-										className="truncate font-semibold text-sm hover:underline"
-										href={`/project/${project.slug}`}
-									>
-										{project.name}
-									</Link>
-									<p className="truncate text-muted-foreground text-xs">
-										{project.client
-											? (project.client.name ?? project.client.email)
-											: "Chưa gán khách hàng"}{" "}
-										· {formatDate(project.startDate)}
-									</p>
-								</div>
-								<Badge
-									className="shrink-0"
-									variant={
-										project.status === "COMPLETED" ? "secondary" : "default"
-									}
-								>
-									{getProjectStatusLabel(project.status)}
-								</Badge>
-							</li>
-						))}
-					</ul>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Dự án</TableHead>
+								<TableHead>Ngân sách</TableHead>
+								<TableHead>Trạng thái</TableHead>
+								<TableHead className="text-right">Hành động</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{projects.map((project) => (
+								<TableRow key={project.id}>
+									<TableCell>
+										<div className="flex items-center gap-3">
+											{project.thumbnail ? (
+												<Image
+													alt={project.name}
+													className="size-9 shrink-0 rounded-md border object-cover"
+													height={36}
+													src={project.thumbnail}
+													width={36}
+												/>
+											) : (
+												<span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+													<FolderKanban className="size-4" />
+												</span>
+											)}
+											<div className="min-w-0">
+												<Link
+													className="block max-w-52 truncate font-semibold text-sm hover:underline"
+													href={`/project/${project.slug}`}
+												>
+													{project.name}
+												</Link>
+												<p className="max-w-52 truncate text-muted-foreground text-xs">
+													{project.client
+														? (project.client.name ?? project.client.email)
+														: "Chưa gán khách hàng"}
+												</p>
+											</div>
+										</div>
+									</TableCell>
+									<TableCell className="font-medium tabular-nums">
+										{formatCurrency(project.budget)}
+									</TableCell>
+									<TableCell>
+										<Badge
+											variant={
+												project.status === "COMPLETED" ? "secondary" : "default"
+											}
+										>
+											{getProjectStatusLabel(project.status)}
+										</Badge>
+									</TableCell>
+									<TableCell className="text-right">
+										<Button
+											render={<Link href={`/project/${project.slug}`} />}
+											size="sm"
+											variant="outline"
+										>
+											Xem chi tiết
+										</Button>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
 				)}
 			</CardContent>
 		</Card>

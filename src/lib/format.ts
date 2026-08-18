@@ -42,16 +42,31 @@ export function formatCurrency(value: number | null | undefined): string {
 
 const DAY_MS = 86_400_000;
 
+export function calculateDifferenceDays(
+	endDate: Date | string | null | undefined,
+	now: number = Date.now(),
+): number | null {
+	if (!endDate) return null;
+	const end = new Date(endDate);
+	if (Number.isNaN(end.getTime())) return null;
+	return Math.ceil((end.getTime() - now) / DAY_MS);
+}
+
+export function formatTimeDifference(days: number | null | undefined): string {
+	if (days === null || days === undefined) return "—";
+	const absolute = Math.abs(days);
+	const year = Math.floor(absolute / 365);
+	const unitYears = year > 0 ? "năm" : "ngày";
+	const count = year > 0 ? year : absolute;
+	if (days > 0) return `${count} ${unitYears} còn lại`;
+	if (days < 0) return `${count} ${unitYears} quá hạn`;
+	return "Hết hạn hôm nay";
+}
+
 export function formatDeadline(
 	value: Date | string | null | undefined,
 ): string {
-	if (!value) return "—";
-	const end = new Date(value);
-	if (Number.isNaN(end.getTime())) return "—";
-	const days = Math.ceil((end.getTime() - Date.now()) / DAY_MS);
-	if (days < 0) return "Quá hạn";
-	if (days === 0) return "Hôm nay";
-	return `${days} ngày`;
+	return formatTimeDifference(calculateDifferenceDays(value));
 }
 
 export const PROJECT_STATUS_LABELS: Record<string, string> = {

@@ -1,4 +1,10 @@
-import type { Payment, Project, ProjectComment, User } from "@prisma/client";
+import type {
+	Module,
+	Payment,
+	Project,
+	ProjectComment,
+	User,
+} from "@prisma/client";
 
 export type ClientProps = Pick<
 	User,
@@ -51,10 +57,28 @@ export type PaymentProps = Pick<
 
 export type ProjectCommentProps = Pick<
 	ProjectComment,
-	"id" | "text" | "createdAt" | "projectId" | "authorId"
+	| "id"
+	| "text"
+	| "createdAt"
+	| "projectId"
+	| "authorId"
+	| "userId"
+	| "username"
+	| "userRole"
 > & {
 	author?: Pick<User, "id" | "name" | "image"> | null;
 };
+
+export type ModuleProps = Pick<
+	Module,
+	| "id"
+	| "name"
+	| "projectId"
+	| "userId"
+	| "username"
+	| "createdAt"
+	| "updatedAt"
+>;
 
 export type UserRole = "ADMIN" | "CLIENT" | "MEMBER";
 export type ProjectStatus = "ONGOING" | "COMPLETED";

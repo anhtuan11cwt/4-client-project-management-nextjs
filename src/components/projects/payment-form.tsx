@@ -31,6 +31,8 @@ const paymentMethods = [
 	"Tiền mặt",
 	"Thẻ tín dụng",
 	"Ví điện tử",
+	"Ví MoMo",
+	"Mobile Money",
 ];
 
 export function PaymentForm({ projectId }: { projectId: string }) {
